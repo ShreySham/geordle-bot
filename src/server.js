@@ -1,11 +1,14 @@
-import { Router } from "itty-router";
+import * as dotenv from 'dotenv';
+dotenv.config();
+import express  from "express";
 import { getChallengeLink } from "./geoguessr.js";
 import { GEOGUESSR_COMMAND } from "./commands.js";
+import { VerifyDiscordRequest, DiscordRequest } from "./utils.js";
 import {
   InteractionResponseType,
   InteractionType,
-  verifyKey,
 } from "discord-interactions";
+
 
 class JsonResponse extends Response {
   constructor(body, init) {
@@ -18,52 +21,45 @@ class JsonResponse extends Response {
     super(jsonBody, init);
   }
 }
+// Create an express app
+const app = express();
+// Get port, or default to 3000
+const PORT = process.env.PORT || 3000;
+// Parse request body and verifies incoming requests using discord-interactions package
+app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 
-// Create a new router
-const router = Router();
-
-/*
-Our index route, a simple hello world.
-*/
-router.get("/", () => {
-  return new Response(
-    "Hello, world! This is the root page of your Worker template."
-  );
+app.get('/', () => {
+    return new JsonResponse("Hello World! This bot is live!");
 });
 
-/*
-This shows a different HTTP method, a POST.
-
-Try send a POST request using curl or another tool.
-
-Try the below curl command to send JSON:
-
-$ curl -X POST <worker> -H "Content-Type: application/json" -d '{"abc": "def"}'
-*/
-router.post("/", async (request, env) => {
-  const message = await request.json();
-  console.log(message);
-  if (message.type === InteractionType.PING) {
-    // The `PING` message is used during the initial webhook handshake, and is
-    // required to configure the webhook in the developer portal.
-    console.log("Handling Ping request");
-    return new JsonResponse({
-      type: InteractionResponseType.PONG,
-    });
+app.post('/interactions', async function (request, result) {
+  // Interaction type and data
+  const { type, id, data } = request.body;
+  /**
+   * Handle verification requests
+   */
+  if (type === InteractionType.PING) {
+    return result.send({ type: InteractionResponseType.PONG });
   }
 
-  if (message.type === InteractionType.APPLICATION_COMMAND) {
+  if (type === InteractionType.APPLICATION_COMMAND) {
     if (
-      message.data.name.toLowerCase() == GEOGUESSR_COMMAND.name.toLowerCase()
+      data.name.toLowerCase() == GEOGUESSR_COMMAND.name.toLowerCase()
     ) {
       console.log("Handling challenge request");
+      result.send({
+          type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+        });
       const challengeUrl = await getChallengeLink();
-      return new JsonResponse({
-        type: 4,
-        data: {
-          content: challengeUrl,
-        },
-      });
+      const endpoint = `/webhooks/${process.env.APP_ID}/${request.body.token}`;
+      await DiscordRequest(endpoint, 
+        {
+          method: 'POST',
+          body: {
+            content: `Here is your geoguessr challenge: ${challengeUrl}`,
+          },
+        }
+      );
     } else {
       console.error("Unknown Command");
       return new JsonResponse({ error: "Unknown Type" }, { status: 400 });
@@ -73,42 +69,6 @@ router.post("/", async (request, env) => {
   return new JsonResponse({ error: "Unknown Type" }, { status: 400 });
 });
 
-/*
-This is the last route we define, it will match anything that hasn't hit a route we've defined
-above, therefore it's useful as a 404 (and avoids us hitting worker exceptions, so make sure to include it!).
-
-Visit any page that doesn't exist (e.g. /foobar) to see it in action.
-*/
-router.all("*", () => new Response("404, not found!", { status: 404 }));
-
-export default {
-  /**
-   * Every request to a worker will start in the `fetch` method.
-   * Verify the signature with the request, and dispatch to the router.
-   * @param {*} request A Fetch Request object
-   * @param {*} env A map of key/value pairs with env vars and secrets from the cloudflare env.
-   * @returns
-   */
-  async fetch(request, env) {
-    if (request.method === "POST") {
-      // Using the incoming headers, verify this request actually came from discord.
-      const signature = request.headers.get("x-signature-ed25519");
-      const timestamp = request.headers.get("x-signature-timestamp");
-      console.log(signature, timestamp, env.DISCORD_PUBLIC_KEY);
-      const body = await request.clone().arrayBuffer();
-      const isValidRequest = verifyKey(
-        body,
-        signature,
-        timestamp,
-        env.DISCORD_PUBLIC_KEY
-      );
-      if (!isValidRequest) {
-        console.error("Invalid Request");
-        return new Response("Bad request signature.", { status: 401 });
-      }
-    }
-
-    // Dispatch the request to the appropriate route
-    return router.handle(request, env);
-  },
-};
+app.listen(PORT, () => {
+  console.log('Listening on port', PORT);
+});

@@ -1,4 +1,4 @@
-import { GEOGUESSR_COMMAND,  } from './commands.js';
+import { GEOGUESSR_COMMAND } from "./commands.js";
 import fetch from 'node-fetch';
 
 /**
@@ -14,11 +14,11 @@ const applicationId = process.env.DISCORD_APPLICATION_ID;
 const testGuildId = process.env.DISCORD_TEST_GUILD_ID;
 
 if (!token) {
-  throw new Error('The DISCORD_TOKEN environment variable is required.');
+  throw new Error("The DISCORD_TOKEN environment variable is required.");
 }
 if (!applicationId) {
   throw new Error(
-    'The DISCORD_APPLICATION_ID environment variable is required.'
+    "The DISCORD_APPLICATION_ID environment variable is required."
   );
 }
 
@@ -30,7 +30,7 @@ if (!applicationId) {
 async function registerGuildCommands() {
   if (!testGuildId) {
     throw new Error(
-      'The DISCORD_TEST_GUILD_ID environment variable is required.'
+      "The DISCORD_TEST_GUILD_ID environment variable is required."
     );
   }
   const url = `https://discord.com/api/v10/applications/${applicationId}/guilds/${testGuildId}/commands`;
@@ -60,17 +60,17 @@ async function registerGlobalCommands() {
 async function registerCommands(url) {
   const response = await fetch(url, {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bot ${token}`,
     },
-    method: 'PUT',
+    method: "PUT",
     body: JSON.stringify([GEOGUESSR_COMMAND]),
   });
 
   if (response.ok) {
-    console.log('Registered all commands');
+    console.log("Registered all commands");
   } else {
-    console.error('Error registering commands');
+    console.error("Error registering commands");
     const text = await response.text();
     console.error(text);
   }

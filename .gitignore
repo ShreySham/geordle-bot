@@ -46,6 +46,7 @@ bower_components
 !.vscode/extensions.json
 
 # misc
+.env
 .sass-cache
 connect.lock
 typings

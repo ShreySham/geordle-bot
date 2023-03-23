@@ -1,3 +1,0 @@
-name = "geordle-bot"
-main = "src/server.js"
-compatibility_date = "2023-02-25"
