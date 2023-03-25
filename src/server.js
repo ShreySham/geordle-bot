@@ -60,6 +60,7 @@ app.post('/interactions', async function (request, result) {
           },
         }
       );
+      return;
     } else {
       console.error("Unknown Command");
       return new JsonResponse({ error: "Unknown Type" }, { status: 400 });

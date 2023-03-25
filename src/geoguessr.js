@@ -1,11 +1,24 @@
 import * as webdriver from "selenium-webdriver";
 import * as chrome from "selenium-webdriver/chrome.js";
-/**
- * Sleep function to allow for pages to load
- * @returns A promise that resolves after the given ms.
- */
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+import fs from "fs";
+
+/*
+* Log in to Geoguessr and save the cookies when the home page is accessed
+*/
+async function loginSaveCookie(tab){
+  try {
+    await tab.get("https://www.geoguessr.com/signin");
+    await tab.findElement(webdriver.By.name("email")).sendKeys(process.env.GEO_EMAIL);
+    await tab.findElement(webdriver.By.name("password")).sendKeys(process.env.GEO_PASS);
+    await tab.findElement(webdriver.By.className("button_button__CnARx button_variantPrimary__xc8Hp")).click();
+    await tab.wait(webdriver.until.titleIs("GeoGuessr - Let's explore the world!"), 10000);
+    let allCookies = await tab.manage().getCookies();
+    for(const cookie of allCookies){
+      fs.writeFileSync('./cookies.txt', JSON.stringify(cookie) + '\n', { flag: 'a+' }, err => {});
+    }
+  } catch(error) {
+    console.error("Error logging in: " + error);
+  }
 }
 
 /**
@@ -19,15 +32,33 @@ export async function getChallengeLink(optionalMap) {
   browser.setChromeOptions(new chrome.Options().headless().windowSize({width: 1920, height: 1080}));
   let tab = browser.build();
   try{
-    await tab.get("https://www.geoguessr.com/signin");
-    console.log("gotLogin");
-    await tab.findElement(webdriver.By.name("email")).sendKeys(process.env.GEO_EMAIL);
-    await tab.findElement(webdriver.By.name("password")).sendKeys(process.env.GEO_PASS);
-    await tab.findElement(webdriver.By.className("button_button__CnARx button_variantPrimary__xc8Hp")).click();
+    if (fs.existsSync('./cookies.txt')) {
+      var fileBuffer = fs.readFileSync('./cookies.txt');
+      var fileString = fileBuffer.toString();
+      fileString = "[" + fileString.replace(/\n/g, ",");
+      fileString = fileString.slice(0,-1) + "]";
+      var allCookies = JSON.parse(fileString.toString());
+      if (allCookies[0].expiry < Math.round(Date.now() / 1000)) {
+        fs.unlinkSync('./cookies.txt');
+        loginSaveCookie(tab);
+      } 
+    } else {
+      await loginSaveCookie(tab);
+    }
+    await tab.manage().deleteAllCookies();
+    await tab.get("https://www.geoguessr.com/");
+    var fileBuffer = fs.readFileSync('./cookies.txt');
+    var fileString = fileBuffer.toString();
+    fileString = "[" + fileString.replace(/\n/g, ",");
+    fileString = fileString.slice(0,-1) + "]";
+    var allCookies = JSON.parse(fileString.toString());
+    for(const cookie of allCookies){
+      await tab.manage().addCookie(cookie);
+    }
+    await tab.get("https://www.geoguessr.com/");
     await tab.wait(webdriver.until.titleIs("GeoGuessr - Let's explore the world!"), 10000);
     console.log("gotHome");
     await tab.wait(await webdriver.until.elementLocated(await webdriver.By.className("quick-search_searchInputButton__kK9Hz")), 2000).click();
-    //await tab.findElement(webdriver.By.className("quick-search_searchInputButton__kK9Hz")).click();
     await tab.wait(await webdriver.until.elementLocated(await webdriver.By.className("quick-search_searchInput__i7C6O")), 2000).click();
     await tab.findElement(webdriver.By.className("quick-search_searchInput__i7C6O")).sendKeys(mapName);
     await tab.wait(await webdriver.until.elementLocated(await webdriver.By.className("search-result_wrapper__jwHxo search-result_isFocused__ZAXVX")), 2000).click();
