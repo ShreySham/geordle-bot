@@ -1,13 +1,15 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-import express  from "express";
-import { getChallengeLink } from "./geoguessr.js";
-import { GEOGUESSR_COMMAND } from "./commands.js";
-import { VerifyDiscordRequest, DiscordRequest } from "./utils.js";
-import {
+require('dotenv').config();
+const express = require('express');
+const getChallengeLink =  require('./geoguessr.js');
+const GEOGUESSR_COMMAND = require('./commands.js');
+const { 
+  VerifyDiscordRequest, 
+  DiscordRequest 
+} = require('./utils.js');
+const {
   InteractionResponseType,
   InteractionType,
-} from "discord-interactions";
+} = require('discord-interactions');
 
 
 class JsonResponse extends Response {

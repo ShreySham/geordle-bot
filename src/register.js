@@ -1,5 +1,5 @@
-import { GEOGUESSR_COMMAND } from "./commands.js";
-import fetch from 'node-fetch';
+const GEOGUESSR_COMMAND = require('./commands.js');
+const  fetch = require('node-fetch');
 
 /**
  * This file is meant to be run from the command line, and is not used by the
