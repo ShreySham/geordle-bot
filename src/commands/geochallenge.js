@@ -8,6 +8,6 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply();
         const challengeUrl = await getChallengeLink();
-        await interaction.reply(`Here is your geoguessr challenge: ${challengeUrl}`);
+        await interaction.editReply(`Here is your geoguessr challenge: ${challengeUrl}`);
 	},
 };
