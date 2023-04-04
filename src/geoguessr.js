@@ -71,6 +71,8 @@ async function getChallengeLink(optionalMap) {
     await tab.findElement(webdriver.By.css('*[data-qa="invite-friends-button"]')).click();
     await tab.wait(await webdriver.until.elementLocated(await webdriver.By.className("text-input_textInput__HPC_k")), 2000).click();
     challengeLink = await tab.findElement(webdriver.By.className("text-input_textInput__HPC_k")).getAttribute("value");
+  } catch(error) {
+    console.error("Error navigating GeoGuessr: " + error);
   } finally {
     await tab.close();
   }
