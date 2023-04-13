@@ -18,6 +18,7 @@
     "dependencies": {
         "discord.js": "^14.9.0",
         "dotenv": "^16.0.3",
+        "puppeteer": "^19.8.5",
         "selenium-webdriver": "^4.8.2"
     },
     "devDependencies": {
