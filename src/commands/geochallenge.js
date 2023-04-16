@@ -18,7 +18,7 @@ module.exports = {
 			name: `${date.getMonth()+1}/${date.getDate()} GeoChallenge`,
 			reason: "Separate thread for today's Geoguessr challenge",
 		});
-		console.log(Object.values(roleMap.get(interaction.guildId)));
+		
 		const role = interaction.guild.roles.cache.find(r => r.name === interaction.options.getString('role')) || roleMap.get(interaction.guildId) ||  'defaultRoleId';
 		const returnStr = `${role === 'defaultRoleId' ? '' : `<@&${role.id}>` } Here is your geoguessr challenge: ${challengeUrl}`;
 		if(role !== 'defaultRoleId'){
