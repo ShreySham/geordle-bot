@@ -47,24 +47,24 @@ async function getChallengeLink(optionalMap) {
     var allCookies = JSON.parse(fileBuffer);
     await tab.setCookie(...allCookies);
     await Promise.all([
-      tab.waitForNavigation({timeout: 10000}),
+      tab.waitForNavigation({timeout: 7000}),
       tab.goto("https://www.geoguessr.com/"),
     ])
     console.log("gotHome");
     await Promise.all([
-      tab.waitForSelector('.quick-search_searchInput__i7C6O',{timeout: 3000}),
+      tab.waitForSelector('.quick-search_searchInput__i7C6O',{timeout: 7000}),
       tab.click(".quick-search_searchInputButton__kK9Hz"),
     ])
     await tab.type(".quick-search_searchInput__i7C6O", mapName);
-    await tab.waitForSelector('.quick-search_resultList__cLjml',{timeout: 5000});
+    await tab.waitForSelector('.quick-search_resultList__cLjml',{timeout: 7000});
     
     await Promise.all([
-      tab.waitForNavigation({timeout: 3000}),
+      tab.waitForNavigation({timeout: 7000}),
       tab.click('li[class="search-result_wrapper__jwHxo search-result_isFocused__ZAXVX"]'),
     ]);
 
     await Promise.all([
-      tab.waitForNavigation({timeout: 3000}),
+      tab.waitForNavigation({timeout: 7000}),
       tab.goto(tab.url()+'/play'),
     ]);
 
@@ -95,7 +95,7 @@ async function getChallengeLink(optionalMap) {
     });
 
     await Promise.all([
-      tab.waitForSelector("#__next > div.background_wrapper__OlrxG.background_backgroundClassic__ySr_Z > div.version4_layout__KcIcs > div.version4_content__oaYfe > main > div > div > div > div > section > article > div > span > input",{timeout: 10000}),
+      tab.waitForSelector("#__next > div.background_wrapper__OlrxG.background_backgroundClassic__ySr_Z > div.version4_layout__KcIcs > div.version4_content__oaYfe > main > div > div > div > div > section > article > div > span > input",{timeout: 7000}),
       tab.evaluate(() => {
         document.querySelector("#__next > div.background_wrapper__OlrxG.background_backgroundClassic__ySr_Z > div.version4_layout__KcIcs > div.version4_content__oaYfe > main > div > div > div > div > div.start-challenge-game_body__sWqnL > button > div").click();
       }),
